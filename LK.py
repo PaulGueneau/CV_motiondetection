@@ -15,7 +15,6 @@ ret, first_frame = cap.read()
 # Scale and resize image
 resize_dim = 900
 max_dim = max(first_frame.shape)
-print(max_dim)
 scale = resize_dim/max_dim
 first_frame = cv2.resize(first_frame, None, fx=scale, fy=scale)
 # Convert to gray scale 
@@ -83,12 +82,9 @@ while cap.isOpened():
         break
      
 
-
-print(dx_list,dy_list)
-
 cap.release()
 
 cv2.destroyAllWindows()
 
-stabilize_v1(vid_str,dx_list,dy_list,15)
+stabilize_v1(vid_str,dx_list,dy_list,51)
 
