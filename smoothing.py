@@ -1,9 +1,16 @@
-import numpy 
+import numpy as np
 
 # https://scipy-cookbook.readthedocs.io/items/SignalSmooth.html
 
 
-def smooth(x,window_len=11,window='hanning'):
+def movingAverage(x,radius):
+    window_size = 2*radius+1
+    moving_filter = np.ones(window_size)/window_size
+    padding = np.lib.pad(x,(radius,radius),'edge')
+    smoothed_x = np.convolve(padding,moving_filter,mode='same')
+    smoothed_x = smoothed_x[radius:-radius]
+    return smoothed_x
+def smooth(trajectory):
     """smooth the data using a window with requested size.
     
     This method is based on the convolution of a scaled window with the signal.
@@ -35,35 +42,47 @@ def smooth(x,window_len=11,window='hanning'):
     NOTE: length(output) != length(input), to correct this: return y[(window_len/2-1):-(window_len/2)] instead of just y.
     """
 
-    x = numpy.array(x)
+    smoothed_trajectory = np.copy(trajectory)
+    for i in range(3):
+        smoothed_trajectory[:,i] = movingAverage(trajectory[:,i],radius=10)
 
-    if x.ndim != 1:
-        raise ValueError
+    return smoothed_trajectory
+        
+    #if x.ndim != 1:
+     #   raise ValueError
 
-    if x.size < window_len:
-        raise ValueError
-
-
-    if window_len<3:
-        return x
-
-
-    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-        raise ValueError
+    #if x.size < window_len:
+      #  raise ValueError
 
 
-    s=numpy.r_[x[window_len-1:0:-1],x,x[-2:-window_len-1:-1]]
+    #if window_len<3:
+     #   return x
+
+
+    #if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+       # raise ValueError
+
+
+    #s=numpy.r_[x[window_len-1:0:-1],x,x[-2:-window_len-1:-1]]
     #print(len(s))
-    if window == 'flat': #moving average
-        w=numpy.ones(window_len,'d')
-    else:
-        w=eval('numpy.'+window+'(window_len)')
-
-    y=numpy.convolve(w/w.sum(),s,mode='valid')
+    #if window == 'flat': #moving average
+     #   w=numpy.ones(window_len,'d')/window_len
+    #else:
+     #   w=eval('numpy.'+window+'(window_len)')
     
-    crop = int((window_len-1)/2)
+    
 
-    return y[crop : -crop]
+    
+
+   
+
+
+  
+
+    #y=numpy.convolve(w/w.sum(),s,mode='valid')
+    
+   
+
 
 
 

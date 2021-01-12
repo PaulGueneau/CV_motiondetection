@@ -7,8 +7,8 @@ from smoothing import smooth
 
 def stabilize_v1(vid,dx_list,dy_list,smoothing_length):
 
-    dx_list_lisse = smooth(dx_list,window_len=smoothing_length)
-    dy_list_lisse = smooth(dy_list,window_len=smoothing_length)
+    dx_list_lisse = smooth(dx_list,smoothing_length)
+    dy_list_lisse = smooth(dy_list,smoothing_length)
 
 
     # Calculer dx et dy moyens en fonction du temps
@@ -83,3 +83,18 @@ def rogner(frame,x,y):
     frame[0:y,:,:] = 0
     frame[h-y:h,:,:] = 0
     return frame
+
+def fixBorder(frame):
+    h,w,_ = frame.shape
+    R  = cv2.getRotationMatrix2D((w/2,h/2),0,1.06)
+    frame = cv2.warpAffine(frame,R,(w,h)) 
+    return frame
+
+
+   
+
+      
+
+   
+
+    
