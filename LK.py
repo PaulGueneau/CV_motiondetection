@@ -1,90 +1,75 @@
 import cv2
 import numpy as np
 
-from stabilize import stabilize_v1
-
-# Get a VideoCapture object from video and store it in vs
-vid_str = "../vids/VID_1.mp4"
-
-#cap = cv2.VideoCapture("./vids/Camera fixe/football.mp4")
-cap = cv2.VideoCapture(vid_str)
 
 
-# Read first frame
-ret, first_frame = cap.read()
-# Scale and resize image
-resize_dim = 900
-max_dim = max(first_frame.shape)
-scale = resize_dim/max_dim
-first_frame = cv2.resize(first_frame, None, fx=scale, fy=scale)
-# Convert to gray scale 
-prev_gray = cv2.cvtColor(first_frame, cv2.COLOR_BGR2GRAY)
+def get_dx_dy(vid_str):
+    cap = cv2.VideoCapture(vid_str)
 
+    ret, first_frame = cap.read()
+    resize_dim = 900
+    max_dim = max(first_frame.shape)
+    scale = resize_dim/max_dim
+    first_frame = cv2.resize(first_frame, None, fx=scale, fy=scale)
+    prev_gray = cv2.cvtColor(first_frame, cv2.COLOR_BGR2GRAY)
 
+    dx_list=list()
+    dy_list=list()
 
+    nb_pts = 15
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if(ret):
+            
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            gray = cv2.resize(gray, None, fx=scale, fy=scale)
+            
 
-#out = cv2.VideoWriter('video.mp4',-1,1,(600, 600))
+            cv2.imshow('Frame',gray)
 
-dx_list=list()
-dy_list=list()
-
-nb_pts = 15
-while cap.isOpened():
-    # Read a frame from video
-    ret, frame = cap.read()
-    if(ret):
+            if cv2.waitKey(25) & 0xFF == ord('q'):
+                break
+            
+            corners = cv2.goodFeaturesToTrack(prev_gray,nb_pts,0.001,10)
+            print(corners)
+            next_corners, status, err = cv2.calcOpticalFlowPyrLK(prev_gray,gray, corners, None)
         
-    
-        # Convert new frame format`s to gray scale and resize gray frame obtained
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        gray = cv2.resize(gray, None, fx=scale, fy=scale)
+            sum_dx = 0
+            sum_dy = 0
+            for i in range(len(corners)):
+                sum_dx += next_corners[i][0][0] - corners[i][0][0]
+                sum_dy += next_corners[i][0][1] - corners[i][0][1]
+            dx = sum_dx/nb_pts
+            dy = sum_dy/nb_pts
+
+            dx_list.append(dx)
+            dy_list.append(dy)
+
+            grayRGB = cv2.cvtColor(gray,cv2.COLOR_GRAY2RGB)
+
+            for [[x,y]] in corners:
+                grayRGB = cv2.circle(grayRGB, (int(x),int(y)), 2, (0,0,255), 3) #red
+
+            for [[x,y]] in next_corners:
+                grayRGB = cv2.circle(grayRGB, (int(x),int(y)), 2, (255,0,0), 3) #blue
+
+            grayRGB	= cv2.arrowedLine(	grayRGB, (200,200), (int(200+6*dx),int(200+6*dy)), (0,255,0),thickness=3)
+
+            cv2.imshow(".", grayRGB)
         
-
-        corners = cv2.goodFeaturesToTrack(prev_gray,nb_pts,0.1,40)
-
-        next_corners, status, err = cv2.calcOpticalFlowPyrLK(prev_gray,gray, corners, None)
-        
-        sum_dx = 0
-        sum_dy = 0
-        for i in range(len(corners)):
-            sum_dx += next_corners[i][0][0] - corners[i][0][0]
-            sum_dy += next_corners[i][0][1] - corners[i][0][1]
-        dx = sum_dx/nb_pts
-        dy = sum_dy/nb_pts
-
-        dx_list.append(dx)
-        dy_list.append(dy)
-
-
-        
-        grayRGB = cv2.cvtColor(gray,cv2.COLOR_GRAY2RGB)
-
-        for [[x,y]] in corners:
-            grayRGB = cv2.circle(grayRGB, (int(x),int(y)), 2, (0,0,255), 1) #red
-
-        for [[x,y]] in next_corners:
-            grayRGB = cv2.circle(grayRGB, (int(x),int(y)), 2, (255,0,0), 1) #blue
-
-        
-        grayRGB	= cv2.arrowedLine(	grayRGB, (200,200), (int(200+6*dx),int(200+6*dy)), (0,255,0),thickness=3)
-
-
-        
-        cv2.imshow(".", grayRGB)
-        #out.write(dense_flow)
-        prev_gray = gray
-        key = cv2.waitKey(1)
-        if key == ord('q'):
+            prev_gray = gray
+            key = cv2.waitKey(1)
+            if key == ord('q'):
+                break
+            if key == ord('p'):
+                cv2.waitKey(-1) 
+        else:
             break
-        if key == ord('p'):
-            cv2.waitKey(-1) #wait until any key is pressed
-    else:
-        break
-     
+        
 
-cap.release()
+    cap.release()
+    cv2.destroyAllWindows()
 
-cv2.destroyAllWindows()
+    return [np.cumsum(dx_list),np.cumsum(dy_list)]
 
-stabilize_v1(vid_str,dx_list,dy_list,51)
 
