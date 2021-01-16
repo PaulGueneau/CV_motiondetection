@@ -86,7 +86,7 @@ def rogner(frame,x,y):
 
 def fixBorder(frame):
     h,w,_ = frame.shape
-    R  = cv2.getRotationMatrix2D((w/2,h/2),0,1.06)
+    R  = cv2.getRotationMatrix2D((w/2,h/2),0.001,1.1)
     frame = cv2.warpAffine(frame,R,(w,h)) 
     return frame
 

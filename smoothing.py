@@ -1,11 +1,13 @@
 import numpy as np
-
+import cv2
 # https://scipy-cookbook.readthedocs.io/items/SignalSmooth.html
 
 
 def movingAverage(x,radius):
     window_size = 2*radius+1
     moving_filter = np.ones(window_size)/window_size
+    gaussian_filter = cv2.getGaussianKernel(window_size,1)
+    gaussian_filter = gaussian_filter.reshape(window_size,)
     padding = np.lib.pad(x,(radius,radius),'edge')
     smoothed_x = np.convolve(padding,moving_filter,mode='same')
     smoothed_x = smoothed_x[radius:-radius]
@@ -43,11 +45,20 @@ def smooth(trajectory):
     """
 
     smoothed_trajectory = np.copy(trajectory)
-    for i in range(3):
-        smoothed_trajectory[:,i] = movingAverage(trajectory[:,i],radius=10)
+    for i in range(2):
+        #smoothed_trajectory[:,i] = movingAverage(trajectory[:,i],radius=10)
+        smoothed_trajectory[:,i] = movingAverage(trajectory[:,i],50)
 
     return smoothed_trajectory
-        
+
+
+
+
+
+def medianFilter(x):
+    kernel = np.ones((5,5),np.float32)/25
+    dst = cv2.filter2D(x,-1,kernel)
+    return dst
     #if x.ndim != 1:
      #   raise ValueError
 
