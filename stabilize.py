@@ -38,7 +38,7 @@ def stabilize_v1(vid,dx_list,dy_list,smoothing_length):
     fps = cap.get(cv2.CAP_PROP_FPS)
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     #out = cv2.VideoWriter(vid.split('.')[-2] + str(smoothing_length) +'_frames_stable.avi',fourcc, fps,(900, 900))
-    out = cv2.VideoWriter('../vids/smooth_' + str(smoothing_length) + '.avi' ,fourcc, fps,(first_frame.shape[1],first_frame.shape[0]))
+    out = cv2.VideoWriter('../vids/NEW_smooth_'+ vid.split('.')[-2].split('/')[-1] +'_'+ str(smoothing_length) + '.avi' ,fourcc, fps,(first_frame.shape[1],first_frame.shape[0]))
 
     
     frame_count = 0
